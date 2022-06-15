@@ -2,10 +2,14 @@ package main
 
 import (
 	"calendar/internal/controllers"
+	"calendar/internal/db"
 	"calendar/internal/middlewares"
+	"context"
 	"net/http"
+	"os"
 
 	"github.com/go-playground/validator"
+	"github.com/joho/godotenv"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -13,13 +17,27 @@ import (
 )
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
 	e := echo.New()
 	e.Validator = &middlewares.CustomValidator{Validator: validator.New()}
 
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
-	h := controllers.NewHandler()
+	ctx := context.Background()
+
+	dbPool, err := db.InitPool(ctx)
+	if err != nil {
+		log.Fatalf("Could not set up database: %s", err.Error())
+		os.Exit(1)
+	}
+	defer dbPool.Close()
+
+	h := controllers.NewHandler(dbPool)
 
 	e.POST("/users", h.CreateUser)       // создать пользователя
 	e.POST("/meetings", h.CreateMeeting) // создать встречу в календаре пользователя со списком приглашенных пользователей

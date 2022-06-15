@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"calendar/internal/models"
+	"context"
 	"net/http"
 	"time"
 
@@ -9,11 +10,16 @@ import (
 )
 
 func (h *handler) HealthCheck(c echo.Context) error {
-
-	// TODO check services
+	dbStatus := "DOWN"
+	if h.pool != nil {
+		if err := h.pool.Ping(context.Background()); err == nil {
+			dbStatus = "UP"
+		}
+	}
 
 	return c.JSON(http.StatusOK, models.HealthStatus{
 		Status:    "OK",
 		Timestamp: time.Now(),
+		DB:        dbStatus,
 	})
 }
