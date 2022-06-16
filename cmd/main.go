@@ -17,8 +17,7 @@ import (
 )
 
 func main() {
-	err := godotenv.Load()
-	if err != nil {
+	if err := godotenv.Load(); err != nil {
 		log.Fatal("Error loading .env file")
 	}
 
@@ -28,8 +27,13 @@ func main() {
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
-	ctx := context.Background()
+	err := db.MakeMigrations()
+	if err != nil {
+		log.Fatalf("Could not make migrations: %s", err.Error())
+		os.Exit(1)
+	}
 
+	ctx := context.Background()
 	dbPool, err := db.InitPool(ctx)
 	if err != nil {
 		log.Fatalf("Could not set up database: %s", err.Error())
