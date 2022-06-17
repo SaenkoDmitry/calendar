@@ -43,9 +43,10 @@ func main() {
 
 	h := controllers.NewHandler(dbPool)
 
-	e.POST("/users", h.CreateUser)       // создать пользователя
-	e.POST("/meetings", h.CreateMeeting) // создать встречу в календаре пользователя со списком приглашенных пользователей
-	e.GET("/meetings/:id", h.GetMeeting) // получить детали встречи
+	e.POST("/users", h.CreateUser)        // создать пользователя
+	e.PUT("/users/:id", h.ChangeUserZone) // сменить часовой пояс пользователя
+	e.POST("/meetings", h.CreateMeeting)  // создать встречу в календаре пользователя со списком приглашенных пользователей
+	e.GET("/meetings/:id", h.GetMeeting)  // получить детали встречи
 
 	// statuses of meeting: created, approved, rejected, completed
 	e.PUT("/meetings/:id/status", h.ChangeStatusOfMeeting) // принять или отклонить приглашение другого пользователя
