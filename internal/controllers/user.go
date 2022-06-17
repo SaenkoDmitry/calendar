@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"calendar/internal/constants"
+	"calendar/internal/models"
 	"calendar/internal/utils"
 	"net/http"
 	"strings"
@@ -12,19 +13,9 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type CreateUserReq struct {
-	FirstName  string `json:"first_name" validate:"required"`
-	SecondName string `json:"second_name" validate:"required"`
-	Email      string `json:"email" validate:"required,email"`
-}
-
-type ChangeZoneReq struct {
-	Zone string `json:"zone" validate:"required"`
-}
-
 func (h *handler) CreateUser(c echo.Context) error {
 	ctx := c.Request().Context()
-	req := new(CreateUserReq)
+	req := new(models.CreateUserReq)
 	if err := c.Bind(req); err != nil {
 		return err
 	}
@@ -47,7 +38,7 @@ func (h *handler) CreateUser(c echo.Context) error {
 
 func (h *handler) ChangeUserZone(c echo.Context) error {
 	ctx := c.Request().Context()
-	req := new(ChangeZoneReq)
+	req := new(models.ChangeZoneReq)
 	if err := c.Bind(req); err != nil {
 		return err
 	}
@@ -61,15 +52,16 @@ func (h *handler) ChangeUserZone(c echo.Context) error {
 		return utils.WrapJSONError(c, http.StatusBadRequest, constants.NotValidTimeZone)
 	}
 
-	_, err = h.pool.Exec(ctx, "UPDATE users SET user_zone = $1 WHERE id = $2", loc.String(), userID)
+	res, err := h.pool.Exec(ctx, "UPDATE users SET user_zone = $1 WHERE id = $2", loc.String(), userID)
 	if err != nil {
-		pgErr, _ := err.(*pgconn.PgError)
-		if true {
-			_ = pgErr
-			return utils.WrapJSONError(c, http.StatusBadRequest, constants.UserIDNotExists)
-		}
 		return utils.WrapJSONError(c, http.StatusInternalServerError, constants.UndefinedDB)
 	}
+
+	if res.RowsAffected() == 0 {
+		return utils.WrapJSONError(c, http.StatusBadRequest, constants.UserIDNotExists)
+	}
+
+	_ = res
 
 	return c.JSON(http.StatusOK, loc)
 }
