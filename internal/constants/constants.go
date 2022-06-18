@@ -33,12 +33,12 @@ const (
 	UserIDConstraintDBErr = `insert or update on table "user_meetings" violates foreign key constraint "fk_user_id"`
 )
 
-var ValidStatuses = []string{Requested, Approved, Rejected, Finished, Canceled}
+var ValidStatuses = []string{Requested, Approved, Declined, Finished, Canceled}
 
 const (
 	Requested = "requested"
 	Approved  = "approved"
-	Rejected  = "rejected"
+	Declined  = "declined"
 	Finished  = "finished"
 	Canceled  = "canceled"
 )

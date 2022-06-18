@@ -41,13 +41,13 @@ func main() {
 
 	h := controllers.NewHandler(dbPool)
 
-	e.POST("/users", h.CreateUser)        // создать пользователя
-	e.PUT("/users/:id", h.ChangeUserZone) // сменить часовой пояс пользователя
-	e.POST("/meetings", h.CreateMeeting)  // создать встречу в календаре пользователя со списком приглашенных пользователей
-	e.GET("/meetings/:id", h.GetMeeting)  // получить детали встречи
+	e.POST("/users", h.CreateUser)              // создать пользователя
+	e.PUT("/users/:userID", h.ChangeUserZone)   // сменить часовой пояс пользователя
+	e.POST("/meetings", h.CreateMeeting)        // создать встречу в календаре пользователя со списком приглашенных пользователей
+	e.GET("/meetings/:meetingID", h.GetMeeting) // получить детали встречи
 
 	e.PUT("/users/:userID/meetings/:meetingID", h.ChangeStatusOfMeeting) // принять или отклонить приглашение другого пользователя
-	e.GET("/users/:id/meetings", h.GetMeetingsByUserAndTimeInterval)     // найти все встречи пользователя для заданного промежутка времени
+	e.GET("/users/:userID/meetings", h.GetMeetingsByUserAndTimeInterval) // найти все встречи пользователя для заданного промежутка времени
 	e.GET("/meetings", h.GetFreeTimeForGroupOfUsers)                     // найти ближайшей интервал времени, в котором все эти пользователи свободны
 	e.GET("/health", h.HealthCheck)
 
