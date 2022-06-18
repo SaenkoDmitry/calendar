@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"calendar/internal/constants"
 	"calendar/internal/models"
 	"context"
 	"net/http"
@@ -9,6 +10,13 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+// HealthCheck godoc
+// @Summary  service health info
+// @Tags     health
+// @Accept   json
+// @Produce  json
+// @Success  200  {object}  models.HealthStatus
+// @Router   /health [get]
 func (h *handler) HealthCheck(c echo.Context) error {
 	dbStatus := "DOWN"
 	if h.pool != nil {
@@ -20,6 +28,11 @@ func (h *handler) HealthCheck(c echo.Context) error {
 	return c.JSON(http.StatusOK, models.HealthStatus{
 		Status:    "OK",
 		Timestamp: time.Now(),
-		DB:        dbStatus,
+		Services: []*models.HealthService{
+			{
+				Name:   constants.PostgresDBService,
+				Status: dbStatus,
+			},
+		},
 	})
 }

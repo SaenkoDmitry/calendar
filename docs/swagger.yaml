@@ -1,0 +1,290 @@
+basePath: /
+definitions:
+  models.ChangeZoneReq:
+    properties:
+      zone:
+        type: string
+    required:
+    - zone
+    type: object
+  models.CreateMeetingReq:
+    properties:
+      description:
+        type: string
+      from:
+        description: 2022-01-02T15:00
+        type: string
+      name:
+        type: string
+      organizer_id:
+        type: integer
+      participants:
+        items:
+          type: integer
+        type: array
+      to:
+        description: 2022-01-02T16:00
+        type: string
+    required:
+    - name
+    type: object
+  models.CreateUserReq:
+    properties:
+      email:
+        type: string
+      first_name:
+        type: string
+      second_name:
+        type: string
+      zone:
+        type: string
+    required:
+    - email
+    - first_name
+    - second_name
+    type: object
+  models.DataError:
+    properties:
+      data: {}
+      err:
+        $ref: '#/definitions/models.InternalError'
+    type: object
+  models.HealthService:
+    properties:
+      name:
+        type: string
+      status:
+        type: string
+    type: object
+  models.HealthStatus:
+    properties:
+      services:
+        items:
+          $ref: '#/definitions/models.HealthService'
+        type: array
+      status:
+        type: string
+      timestamp:
+        type: string
+    type: object
+  models.InternalError:
+    properties:
+      code:
+        type: string
+      msg:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: dmitryssaenko@gmail.com
+    name: Dmitry Saenko
+    url: https://github.com/SaenkoDmitry
+  description: calendar http server documentation
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Calendar API
+  version: "1.0"
+paths:
+  /health:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.HealthStatus'
+      summary: service health info
+      tags:
+      - health
+  /meetings:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: request body for creating meeting
+        in: body
+        name: CreateMeetingReq
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateMeetingReq'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.DataError'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.DataError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.DataError'
+      summary: create meeting info
+      tags:
+      - meeting
+  /meetings/{meetingID}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Meeting ID
+        in: path
+        name: meetingID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.DataError'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.DataError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.DataError'
+      summary: get meeting info
+      tags:
+      - meeting
+  /users:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: request body for creating user
+        in: body
+        name: CreateUserReq
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateUserReq'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.DataError'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.DataError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.DataError'
+      summary: create new user
+      tags:
+      - user
+  /users/{userID}:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: request body for changing user time zone
+        in: body
+        name: CreateUserReq
+        required: true
+        schema:
+          $ref: '#/definitions/models.ChangeZoneReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.DataError'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.DataError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.DataError'
+      summary: change user time zone
+      tags:
+      - user
+  /users/{userID}/meetings:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: User ID
+        in: path
+        name: userID
+        required: true
+        type: integer
+      - description: Meeting ID
+        in: path
+        name: meetingID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.DataError'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.DataError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.DataError'
+      summary: get meetings by user and time interval
+      tags:
+      - meeting
+  /users/{userID}/meetings/{meetingID}:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: User ID
+        in: path
+        name: userID
+        required: true
+        type: integer
+      - description: Meeting ID
+        in: path
+        name: meetingID
+        required: true
+        type: integer
+      - description: 'example: requested | approved | declined | finished | canceled'
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.DataError'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.DataError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.DataError'
+      summary: change status of meeting
+      tags:
+      - status
+swagger: "2.0"

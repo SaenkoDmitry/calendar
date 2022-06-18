@@ -10,6 +10,16 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+// CreateMeeting godoc
+// @Summary  create meeting info
+// @Tags     meeting
+// @Accept   json
+// @Produce  json
+// @Param    CreateMeetingReq  body      models.CreateMeetingReq  true  "request body for creating meeting"
+// @Success  201               {object}  models.DataError
+// @Failure  400               {object}  models.DataError
+// @Failure  500               {object}  models.DataError
+// @Router   /meetings [post]
 func (h *handler) CreateMeeting(c echo.Context) error {
 	req := new(models.CreateMeetingReq)
 	if err := c.Bind(req); err != nil {

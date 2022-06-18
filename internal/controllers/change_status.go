@@ -10,6 +10,18 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+// ChangeStatusOfMeeting godoc
+// @Summary  change status of meeting
+// @Tags     status
+// @Accept   json
+// @Produce  json
+// @Param    userID     path      int32   true   "User ID"
+// @Param    meetingID  path      int32   true   "Meeting ID"
+// @Param    status     query     string  false  "example: requested | approved | declined | finished | canceled"
+// @Success  200        {object}  models.DataError
+// @Failure  400        {object}  models.DataError
+// @Failure  500        {object}  models.DataError
+// @Router   /users/{userID}/meetings/{meetingID} [put]
 func (h *handler) ChangeStatusOfMeeting(c echo.Context) error {
 	userID, err := helpers.GetUser(c, "userID")
 	if err != nil {

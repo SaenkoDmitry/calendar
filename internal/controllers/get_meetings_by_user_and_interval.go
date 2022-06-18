@@ -10,6 +10,17 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+// GetMeetingsByUserAndTimeInterval godoc
+// @Summary  get meetings by user and time interval
+// @Tags     meeting
+// @Accept   json
+// @Produce  json
+// @Param    userID     path      int32  true  "User ID"
+// @Param    meetingID  path      int32  true  "Meeting ID"
+// @Success  200        {object}  models.DataError
+// @Failure  400        {object}  models.DataError
+// @Failure  500        {object}  models.DataError
+// @Router   /users/{userID}/meetings [get]
 func (h *handler) GetMeetingsByUserAndTimeInterval(c echo.Context) error {
 	req := new(models.GetMeetingsByUserAndTimeRequest)
 	if err := c.Bind(req); err != nil {

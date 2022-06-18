@@ -42,3 +42,7 @@ const (
 	Finished  = "finished"
 	Canceled  = "canceled"
 )
+
+const (
+	PostgresDBService = "postgres_db"
+)

@@ -18,3 +18,20 @@ docker-compose up --build
 ```bash
 goose -dir internal/db/migrations postgres "user=postgres password=postgres dbname=calendar sslmode=disable" down
 ```
+
+## Swagger
+
+#### to open swagger page go by link
+```
+http://localhost:8080/swagger/index.html
+```
+
+#### to format swagger comments
+```bash
+swag fmt
+```
+
+#### to update swagger files
+```bash
+swag init -g cmd/main.go
+```
