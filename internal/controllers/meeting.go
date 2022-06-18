@@ -4,6 +4,7 @@ import (
 	"calendar/internal/constants"
 	"calendar/internal/helpers"
 	"calendar/internal/models"
+	"errors"
 	"net/http"
 	"time"
 
@@ -34,20 +35,19 @@ func (h *handler) CreateMeeting(c echo.Context) error {
 		return helpers.WrapError(c, http.StatusBadRequest, constants.UserIDNotExists)
 	}
 
-	// validate 'from' time
-	loc, err := time.LoadLocation(zoneStr)
+	loc, err := helpers.ChooseZone(c, zoneStr)
 	if err != nil {
-		loc = time.UTC // set to default
-	}
-	from, err := time.ParseInLocation(constants.DateTimeFormat, req.From, loc)
-	if err != nil {
-		return helpers.WrapError(c, http.StatusBadRequest, constants.InvalidFromDate)
+		return err
 	}
 
-	// validate 'to' time
-	to, err := time.ParseInLocation(constants.DateTimeFormat, req.To, loc)
+	from, err := helpers.GetDateTime(c, req.From, loc, constants.InvalidFromDate)
 	if err != nil {
-		return helpers.WrapError(c, http.StatusBadRequest, constants.InvalidToDate)
+		return err
+	}
+
+	to, err := helpers.GetDateTime(c, req.To, loc, constants.InvalidToDate)
+	if err != nil {
+		return err
 	}
 
 	// validate that 'from' earlier than 'to' time
@@ -110,10 +110,13 @@ func (h *handler) CreateMeeting(c echo.Context) error {
 
 func (h *handler) GetMeeting(c echo.Context) error {
 	ctx := c.Request().Context()
-	meetingID := c.Param("id")
 	zone := c.QueryParam("zone")
-
 	loc, err := helpers.ChooseZone(c, zone)
+	if err != nil {
+		return err
+	}
+
+	meetingID, err := helpers.GetMeeting(c, "id")
 	if err != nil {
 		return err
 	}
@@ -124,14 +127,14 @@ func (h *handler) GetMeeting(c echo.Context) error {
 	row := h.pool.QueryRow(ctx, "SELECT meet_name, description, start_date, start_time, end_date, end_time "+
 		"	FROM meetings WHERE id = $1", meetingID)
 	if err := row.Scan(&meetName, &description, &startDate, &startTime, &endDate, &endTime); err != nil {
-		if err.Error() == constants.NoRowsInResultSetDBError {
+		if errors.Is(err, pgx.ErrNoRows) {
 			return helpers.WrapError(c, http.StatusBadRequest, constants.MeetingIDNotExists)
 		}
 		return helpers.WrapError(c, http.StatusInternalServerError, constants.UndefinedDB)
 	}
 
-	fromTime := startDate.Add(time.Hour*time.Duration(startTime.Hour()) + time.Minute*time.Duration(startTime.Minute()))
-	toTime := endDate.Add(time.Hour*time.Duration(endTime.Hour()) + time.Minute*time.Duration(endTime.Minute()))
+	fromTime := helpers.MergeDateAndTime(startDate, startTime)
+	toTime := helpers.MergeDateAndTime(endDate, endTime)
 
 	meetInfo := &models.MeetingInfoResponse{
 		Name:        meetName,

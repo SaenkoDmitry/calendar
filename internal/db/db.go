@@ -46,7 +46,7 @@ func MakeMigrations() error {
 	return db.Close()
 }
 
-func InitPool(ctx context.Context) (*pgxpool.Pool, error) {
+func InitPool() (*pgxpool.Pool, error) {
 	dsn := getDSN()
 	poolConfig, err := pgxpool.ParseConfig(dsn)
 	if err != nil {
@@ -54,7 +54,7 @@ func InitPool(ctx context.Context) (*pgxpool.Pool, error) {
 		return nil, err
 	}
 
-	pool, err := pgxpool.ConnectConfig(ctx, poolConfig)
+	pool, err := pgxpool.ConnectConfig(context.Background(), poolConfig)
 	if err != nil {
 		log.Errorf("Unable to create connection pool: %s", err.Error())
 		return nil, err

@@ -3,27 +3,26 @@ package controllers
 import (
 	"calendar/internal/constants"
 	"calendar/internal/helpers"
+	"errors"
 	"fmt"
 	"net/http"
-	"strconv"
 
+	"github.com/jackc/pgx/v4"
 	"github.com/labstack/echo/v4"
 )
 
 func (h *handler) ChangeStatusOfMeeting(c echo.Context) error {
 	ctx := c.Request().Context()
 
-	temp, err := strconv.ParseInt(c.Param("userID"), 10, 32)
-	if err != nil || temp <= 0 {
-		return helpers.WrapError(c, http.StatusBadRequest, constants.InvalidUserID)
+	userID, err := helpers.GetUser(c, "userID")
+	if err != nil {
+		return err
 	}
-	userID := int32(temp)
 
-	temp, err = strconv.ParseInt(c.Param("meetingID"), 10, 32)
-	if err != nil || temp <= 0 {
-		return helpers.WrapError(c, http.StatusBadRequest, constants.InvalidMeetingID)
+	meetingID, err := helpers.GetMeeting(c, "meetingID")
+	if err != nil {
+		return err
 	}
-	meetingID := int32(temp)
 
 	newStatus := c.QueryParam("status")
 	if newStatus == "" {
@@ -37,7 +36,7 @@ func (h *handler) ChangeStatusOfMeeting(c echo.Context) error {
 	row := h.pool.QueryRow(ctx, "SELECT status FROM user_meetings "+
 		"	WHERE user_id = $1 AND meeting_id = $2", userID, meetingID)
 	if err = row.Scan(&currentStatus); err != nil {
-		if err.Error() == constants.NoRowsInResultSetDBError {
+		if errors.Is(err, pgx.ErrNoRows) {
 			return helpers.WrapError(c, http.StatusBadRequest, constants.UserNotInvitedOnTheMeeting)
 		}
 		return helpers.WrapError(c, http.StatusInternalServerError, constants.UndefinedDB)

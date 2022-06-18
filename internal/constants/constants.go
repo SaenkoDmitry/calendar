@@ -30,8 +30,7 @@ const (
 )
 
 const (
-	NoRowsInResultSetDBError = "no rows in result set"
-	UserIDConstraintDBErr    = `insert or update on table "user_meetings" violates foreign key constraint "fk_user_id"`
+	UserIDConstraintDBErr = `insert or update on table "user_meetings" violates foreign key constraint "fk_user_id"`
 )
 
 var ValidStatuses = []string{Requested, Approved, Rejected, Finished, Canceled}

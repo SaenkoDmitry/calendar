@@ -4,7 +4,6 @@ import (
 	"calendar/internal/controllers"
 	"calendar/internal/db"
 	"calendar/internal/middlewares"
-	"context"
 	"net/http"
 	"os"
 
@@ -33,8 +32,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	ctx := context.Background()
-	dbPool, err := db.InitPool(ctx)
+	dbPool, err := db.InitPool()
 	if err != nil {
 		log.Fatalf("Could not set up database: %s", err.Error())
 		os.Exit(1)
@@ -49,8 +47,8 @@ func main() {
 	e.GET("/meetings/:id", h.GetMeeting)  // получить детали встречи
 
 	e.PUT("/users/:userID/meetings/:meetingID", h.ChangeStatusOfMeeting) // принять или отклонить приглашение другого пользователя
-	e.GET("/users/:id/meetings", h.GetMeetingsByUser)                    // найти все встречи пользователя для заданного промежутка времени
-	e.GET("/meetings", h.GetMeetingsForGroupOfUsers)                     // найти ближайшей интервал времени, в котором все эти пользователи свободны
+	e.GET("/users/:id/meetings", h.GetMeetingsByUserAndTimeInterval)     // найти все встречи пользователя для заданного промежутка времени
+	e.GET("/meetings", h.GetFreeTimeForGroupOfUsers)                     // найти ближайшей интервал времени, в котором все эти пользователи свободны
 	e.GET("/health", h.HealthCheck)
 
 	if err := e.Start(":8080"); err != http.ErrServerClosed {
