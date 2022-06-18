@@ -32,12 +32,12 @@ func (h *handler) CreateUser(c echo.Context) error {
 	if err != nil {
 		pgErr, _ := err.(*pgconn.PgError)
 		if helpers.IsEmailDuplicated(pgErr) {
-			return helpers.WrapJSONError(c, http.StatusConflict, constants.EmailAlreadyRegistered)
+			return helpers.WrapError(c, http.StatusConflict, constants.EmailAlreadyRegistered)
 		}
-		return helpers.WrapJSONError(c, http.StatusInternalServerError, constants.UndefinedDB)
+		return helpers.WrapError(c, http.StatusInternalServerError, constants.UndefinedDB)
 	}
 
-	return c.JSON(http.StatusCreated, req.Email)
+	return helpers.WrapSuccess(c, http.StatusCreated, req.Email)
 }
 
 func (h *handler) ChangeUserZone(c echo.Context) error {
@@ -53,21 +53,21 @@ func (h *handler) ChangeUserZone(c echo.Context) error {
 
 	loc, err := time.LoadLocation(req.Zone)
 	if err != nil {
-		return helpers.WrapJSONError(c, http.StatusBadRequest, constants.NotValidTimeZone)
+		return helpers.WrapError(c, http.StatusBadRequest, constants.NotValidTimeZone)
 	}
 
 	res, err := h.pool.Exec(ctx, "UPDATE users SET user_zone = $1 WHERE id = $2", loc.String(), userID)
 	if err != nil {
-		return helpers.WrapJSONError(c, http.StatusInternalServerError, constants.UndefinedDB)
+		return helpers.WrapError(c, http.StatusInternalServerError, constants.UndefinedDB)
 	}
 
 	if res.RowsAffected() == 0 {
-		return helpers.WrapJSONError(c, http.StatusBadRequest, constants.UserIDNotExists)
+		return helpers.WrapError(c, http.StatusBadRequest, constants.UserIDNotExists)
 	}
 
 	_ = res
 
-	return c.JSON(http.StatusOK, loc)
+	return helpers.WrapSuccess(c, http.StatusOK, loc)
 }
 
 func (h *handler) GetMeetingsByUser(c echo.Context) error {

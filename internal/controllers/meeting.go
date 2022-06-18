@@ -14,7 +14,6 @@ import (
 )
 
 const (
-	UserIDConstraint           = `insert or update on table "user_meetings" violates foreign key constraint "fk_user_id"`
 	BatchInsertUserMeetingsSQL = "INSERT INTO user_meetings(user_id, meeting_id) VALUES ($1, $2)"
 )
 
@@ -32,7 +31,7 @@ func (h *handler) CreateMeeting(c echo.Context) error {
 	zoneStr := time.UTC.String()
 	row := h.pool.QueryRow(ctx, "SELECT user_zone FROM users WHERE id = $1", req.AdminID)
 	if err := row.Scan(&zoneStr); err != nil {
-		return helpers.WrapJSONError(c, http.StatusBadRequest, constants.UserIDNotExists)
+		return helpers.WrapError(c, http.StatusBadRequest, constants.UserIDNotExists)
 	}
 
 	// validate 'from' time
@@ -42,18 +41,18 @@ func (h *handler) CreateMeeting(c echo.Context) error {
 	}
 	from, err := time.ParseInLocation(constants.DateTimeFormat, req.From, loc)
 	if err != nil {
-		return helpers.WrapJSONError(c, http.StatusBadRequest, constants.InvalidFromDate)
+		return helpers.WrapError(c, http.StatusBadRequest, constants.InvalidFromDate)
 	}
 
 	// validate 'to' time
 	to, err := time.ParseInLocation(constants.DateTimeFormat, req.To, loc)
 	if err != nil {
-		return helpers.WrapJSONError(c, http.StatusBadRequest, constants.InvalidToDate)
+		return helpers.WrapError(c, http.StatusBadRequest, constants.InvalidToDate)
 	}
 
 	// validate that 'from' earlier than 'to' time
 	if from.After(to) {
-		return helpers.WrapJSONError(c, http.StatusBadRequest, constants.FromEarlierThanToDate)
+		return helpers.WrapError(c, http.StatusBadRequest, constants.FromEarlierThanToDate)
 	}
 
 	tx, err := h.pool.BeginTx(ctx, pgx.TxOptions{})
@@ -63,7 +62,7 @@ func (h *handler) CreateMeeting(c echo.Context) error {
 		}
 	}()
 	if err != nil {
-		return helpers.WrapJSONError(c, http.StatusInternalServerError, constants.UndefinedDB)
+		return helpers.WrapError(c, http.StatusInternalServerError, constants.UndefinedDB)
 	}
 
 	// inserting meeting and getting meeting_id
@@ -81,7 +80,7 @@ func (h *handler) CreateMeeting(c echo.Context) error {
 		if e := tx.Rollback(ctx); e != nil {
 			c.Logger().Error(e)
 		}
-		return helpers.WrapJSONError(c, http.StatusInternalServerError, constants.CannotInsertMeeting)
+		return helpers.WrapError(c, http.StatusInternalServerError, constants.CannotInsertMeeting)
 	}
 
 	batch := &pgx.Batch{}
@@ -94,19 +93,19 @@ func (h *handler) CreateMeeting(c echo.Context) error {
 	err = batchResults.Close()
 	if err != nil {
 		pgErr, _ := err.(*pgconn.PgError)
-		if pgErr.Message == UserIDConstraint {
-			return helpers.WrapJSONError(c, http.StatusInternalServerError, pgErr.Detail)
+		if pgErr.Message == constants.UserIDConstraintDBErr {
+			return helpers.WrapError(c, http.StatusInternalServerError, pgErr.Detail)
 		}
 		if e := tx.Rollback(ctx); e != nil {
 			c.Logger().Error(e)
 		}
-		return helpers.WrapJSONError(c, http.StatusInternalServerError, constants.UndefinedDB)
+		return helpers.WrapError(c, http.StatusInternalServerError, constants.UndefinedDB)
 	}
 	if err = tx.Commit(ctx); err != nil {
-		return helpers.WrapJSONError(c, http.StatusInternalServerError, constants.UndefinedDB)
+		return helpers.WrapError(c, http.StatusInternalServerError, constants.UndefinedDB)
 	}
 
-	return c.JSON(http.StatusCreated, meetingID)
+	return helpers.WrapSuccess(c, http.StatusCreated, meetingID)
 }
 
 func (h *handler) GetMeeting(c echo.Context) error {
@@ -126,9 +125,9 @@ func (h *handler) GetMeeting(c echo.Context) error {
 		"	FROM meetings WHERE id = $1", meetingID)
 	if err := row.Scan(&meetName, &description, &startDate, &startTime, &endDate, &endTime); err != nil {
 		if err.Error() == constants.NoRowsInResultSetDBError {
-			return helpers.WrapJSONError(c, http.StatusBadRequest, constants.MeetingIDNotExists)
+			return helpers.WrapError(c, http.StatusBadRequest, constants.MeetingIDNotExists)
 		}
-		return helpers.WrapJSONError(c, http.StatusInternalServerError, constants.UndefinedDB)
+		return helpers.WrapError(c, http.StatusInternalServerError, constants.UndefinedDB)
 	}
 
 	fromTime := startDate.Add(time.Hour*time.Duration(startTime.Hour()) + time.Minute*time.Duration(startTime.Minute()))
@@ -141,5 +140,5 @@ func (h *handler) GetMeeting(c echo.Context) error {
 		To:          toTime.In(loc).Format(constants.PrettyDateTimeFormat),
 	}
 
-	return c.JSON(http.StatusOK, meetInfo)
+	return helpers.WrapSuccess(c, http.StatusOK, meetInfo)
 }

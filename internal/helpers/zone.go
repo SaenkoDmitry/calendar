@@ -14,7 +14,7 @@ func ChooseZone(c echo.Context, zone string) (*time.Location, error) {
 	}
 	loc, err := time.LoadLocation(zone)
 	if err != nil {
-		return nil, WrapJSONError(c, http.StatusBadRequest, constants.NotValidTimeZone)
+		return nil, WrapError(c, http.StatusBadRequest, constants.NotValidTimeZone)
 	}
 	return loc, nil
 }
