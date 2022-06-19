@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	maxFetchRowsNumber          = 100
-	delayMinutesFromNowInterval = 15
+	maxFetchRowsNumber = 100
+	roundingInterval   = 30
 )
 
 // GetOptimalMeetTimeForGroupOfUsers godoc
@@ -37,7 +37,8 @@ func (h *handler) GetOptimalMeetTimeForGroupOfUsers(c echo.Context) error {
 	var resStart, resEnd *time.Time
 
 	offset := 0
-	prev := time.Now().Add(delayMinutesFromNowInterval * time.Minute)
+	delayMinutesFromNowInterval := roundingInterval - time.Now().Minute()%roundingInterval
+	prev := time.Now().Add(time.Duration(delayMinutesFromNowInterval) * time.Minute)
 
 	for {
 		// values already sorted
@@ -66,7 +67,7 @@ func (h *handler) GetOptimalMeetTimeForGroupOfUsers(c echo.Context) error {
 		offset += maxFetchRowsNumber
 	}
 
-	if resStart == nil || time.Now().Sub(*resStart).Minutes() > delayMinutesFromNowInterval {
+	if resStart == nil || time.Now().Sub(*resStart).Minutes() > float64(delayMinutesFromNowInterval) {
 		return helpers.WrapSuccess(c, http.StatusOK, constants.NotFoundOptimalMeetingForTheInterval)
 	}
 

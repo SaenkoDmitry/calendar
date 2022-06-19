@@ -3,10 +3,8 @@ package controllers
 import (
 	"calendar/internal/constants"
 	"calendar/internal/helpers"
-	"context"
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/labstack/echo/v4"
 )
@@ -24,10 +22,6 @@ import (
 // @Failure  500        {object}  models.DataError
 // @Router   /users/{userID}/meetings/{meetingID} [put]
 func (h *handler) ChangeStatusOfMeeting(c echo.Context) error {
-	ctx, cancel := context.WithTimeout(c.Request().Context(), time.Millisecond*100)
-	defer cancel()
-	c.SetRequest(c.Request().Clone(ctx))
-
 	userID, err := helpers.GetUser(c, "userID")
 	if err != nil {
 		return err

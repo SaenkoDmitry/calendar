@@ -5,10 +5,10 @@ import (
 )
 
 type handler struct {
-	DB *repository.DB
+	DB repository.DBService
 }
 
-func NewHandler(database *repository.DB) *handler {
+func NewHandler(database repository.DBService) *handler {
 	return &handler{
 		DB: database,
 	}

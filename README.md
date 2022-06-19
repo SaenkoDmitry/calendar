@@ -7,7 +7,12 @@
 make build
 ```
 
-#### run calendar by one command with docker db:
+#### run project (without db):
+```bash
+make run
+```
+
+#### run calendar by one command with local database (inside docker containers):
 ```bash
 docker-compose up --build
 ```
@@ -34,4 +39,16 @@ swag fmt
 #### to update swagger files
 ```bash
 swag init -g cmd/main.go
+```
+
+## Tests
+
+#### run tests
+```bash
+make test
+```
+
+#### run tests with coverage
+```bash
+go test -coverpkg=./... ./...
 ```

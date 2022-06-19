@@ -392,7 +392,11 @@ const docTemplate = `{
         "models.CreateMeetingReq": {
             "type": "object",
             "required": [
-                "name"
+                "from",
+                "name",
+                "organizer_id",
+                "participants",
+                "to"
             ],
             "properties": {
                 "description": {

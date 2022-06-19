@@ -50,3 +50,11 @@ const (
 var (
 	ServerTimeZone *time.Location
 )
+
+func init() {
+	loc, err := time.LoadLocation("Europe/Moscow")
+	if err != nil {
+		panic(err)
+	}
+	ServerTimeZone = loc
+}

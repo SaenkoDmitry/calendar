@@ -20,14 +20,11 @@ const (
 			m.id, m.meet_name, m.description, m.start_date, m.start_time, m.end_date, m.end_time
 		FROM user_meetings um 
 				JOIN meetings m ON m.id = um.meeting_id 
-		WHERE um.user_id = $1 AND um.status != 'canceled' AND um.status != 'finished' 
+		WHERE um.user_id = $1 
 			AND
 			(m.start_date > $2 OR m.start_date = $2 AND m.start_time >= $3) 
 			AND 
 			(m.start_date < $4 OR m.start_date = $4 AND m.start_time < $5)`
-
-	selectMeetingStatusSQL = `SELECT status FROM user_meetings 
-		WHERE user_id = $1 AND meeting_id = $2`
 
 	updateMeetStatusSQL = `UPDATE user_meetings SET status = $1 WHERE user_id = $2 AND meeting_id = $3`
 
@@ -81,19 +78,6 @@ func (db *DB) SelectMeetingsByUserAndInterval(c echo.Context,
 		})
 	}
 	return meetings, nil
-}
-
-func (db *DB) SelectMeetStatus(c echo.Context, userID, meetingID int32) (string, error) {
-	ctx := c.Request().Context()
-	var status string
-	row := db.pool.QueryRow(ctx, selectMeetingStatusSQL, userID, meetingID)
-	if err := row.Scan(&status); err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return "", helpers.WrapError(c, http.StatusBadRequest, constants.UserNotInvitedOnTheMeeting)
-		}
-		return "", helpers.WrapError(c, http.StatusInternalServerError, constants.UndefinedDB)
-	}
-	return status, nil
 }
 
 func (db *DB) UpdateMeetStatus(c echo.Context, userID, meetingID int32, status string) error {

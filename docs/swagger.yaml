@@ -26,7 +26,11 @@ definitions:
         description: 2022-01-02T16:00
         type: string
     required:
+    - from
     - name
+    - organizer_id
+    - participants
+    - to
     type: object
   models.CreateUserReq:
     properties:

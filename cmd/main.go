@@ -1,14 +1,12 @@
 package main
 
 import (
-	"calendar/internal/constants"
 	"calendar/internal/controllers"
 	"calendar/internal/db"
 	"calendar/internal/middlewares"
 	"calendar/internal/repository"
 	"net/http"
 	"os"
-	"time"
 
 	echoSwagger "github.com/swaggo/echo-swagger"
 
@@ -41,12 +39,6 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
-	loc, err := time.LoadLocation("Europe/Moscow")
-	if err != nil {
-		panic(err)
-	}
-	constants.ServerTimeZone = loc
-
 	e := echo.New()
 	e.Validator = &middlewares.CustomValidator{Validator: validator.New()}
 
@@ -55,7 +47,7 @@ func main() {
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
-	err = db.MakeMigrations()
+	err := db.MakeMigrations()
 	if err != nil {
 		log.Fatalf("Could not make migrations: %s", err.Error())
 		os.Exit(1)
