@@ -3,7 +3,6 @@ package controllers
 import (
 	"calendar/internal/helpers"
 	"calendar/internal/models"
-	"calendar/internal/repository"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -38,7 +37,7 @@ func (h *handler) ChangeUserZone(c echo.Context) error {
 		return err
 	}
 
-	err = repository.UpdateUserZone(c, h.pool, userID, loc)
+	err = h.DB.UpdateUserZone(c, userID, loc)
 	if err != nil {
 		return err
 	}

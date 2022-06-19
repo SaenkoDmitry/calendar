@@ -1,13 +1,15 @@
 package controllers
 
-import "github.com/jackc/pgx/v4/pgxpool"
+import (
+	"calendar/internal/repository"
+)
 
 type handler struct {
-	pool *pgxpool.Pool
+	DB *repository.DB
 }
 
-func NewHandler(pool *pgxpool.Pool) *handler {
+func NewHandler(database *repository.DB) *handler {
 	return &handler{
-		pool: pool,
+		DB: database,
 	}
 }

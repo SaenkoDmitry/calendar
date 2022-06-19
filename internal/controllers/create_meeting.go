@@ -4,7 +4,6 @@ import (
 	"calendar/internal/constants"
 	"calendar/internal/helpers"
 	"calendar/internal/models"
-	"calendar/internal/repository"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -33,7 +32,7 @@ func (h *handler) CreateMeeting(c echo.Context) error {
 		return helpers.WrapError(c, http.StatusBadRequest, constants.TooManyUsersForMeeting)
 	}
 
-	loc, err := repository.SelectUserZone(c, h.pool, req.AdminID)
+	loc, err := h.DB.SelectUserZone(c, req.AdminID)
 	if err != nil {
 		return err
 	}
@@ -52,7 +51,7 @@ func (h *handler) CreateMeeting(c echo.Context) error {
 		return helpers.WrapError(c, http.StatusBadRequest, constants.FromEarlierThanToDate)
 	}
 
-	meetingID, err := repository.CreateMeetingWithLinkToUsers(c, h.pool, req.AdminID, req.UserIDs, req.Name, req.Description, from, to)
+	meetingID, err := h.DB.CreateMeetingWithLinkToUsers(c, req.AdminID, req.UserIDs, req.Name, req.Description, from, to)
 	if err != nil {
 		return err
 	}

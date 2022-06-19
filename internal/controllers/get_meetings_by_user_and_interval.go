@@ -4,7 +4,6 @@ import (
 	"calendar/internal/constants"
 	"calendar/internal/helpers"
 	"calendar/internal/models"
-	"calendar/internal/repository"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -35,7 +34,7 @@ func (h *handler) GetMeetingsByUserAndTimeInterval(c echo.Context) error {
 		return err
 	}
 
-	loc, err := repository.SelectUserZone(c, h.pool, userID)
+	loc, err := h.DB.SelectUserZone(c, userID)
 	if err != nil {
 		return err
 	}
@@ -54,7 +53,7 @@ func (h *handler) GetMeetingsByUserAndTimeInterval(c echo.Context) error {
 		return helpers.WrapError(c, http.StatusBadRequest, constants.FromEarlierThanToDate)
 	}
 
-	meetings, err := repository.SelectMeetingsByUserAndInterval(c, h.pool, userID, loc, from, to)
+	meetings, err := h.DB.SelectMeetingsByUserAndInterval(c, userID, loc, from, to)
 	if err != nil {
 		return err
 	}

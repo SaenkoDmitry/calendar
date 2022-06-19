@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"calendar/internal/helpers"
-	"calendar/internal/repository"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -30,7 +29,7 @@ func (h *handler) GetMeeting(c echo.Context) error {
 		return err
 	}
 
-	meetInfo, err := repository.GetMeeting(c, h.pool, meetingID, loc)
+	meetInfo, err := h.DB.GetMeeting(c, meetingID, loc)
 	if err != nil {
 		return err
 	}

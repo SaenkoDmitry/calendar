@@ -5,6 +5,7 @@ import (
 	"calendar/internal/controllers"
 	"calendar/internal/db"
 	"calendar/internal/middlewares"
+	"calendar/internal/repository"
 	"net/http"
 	"os"
 	"time"
@@ -67,7 +68,9 @@ func main() {
 	}
 	defer dbPool.Close()
 
-	h := controllers.NewHandler(dbPool)
+	database := repository.NewDBService(dbPool)
+
+	h := controllers.NewHandler(database)
 
 	e.POST("/users", h.CreateUser)              // создать пользователя
 	e.PUT("/users/:userID", h.ChangeUserZone)   // сменить часовой пояс пользователя

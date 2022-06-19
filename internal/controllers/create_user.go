@@ -3,7 +3,6 @@ package controllers
 import (
 	"calendar/internal/helpers"
 	"calendar/internal/models"
-	"calendar/internal/repository"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -33,7 +32,7 @@ func (h *handler) CreateUser(c echo.Context) error {
 		return err
 	}
 
-	_, err = repository.CreateUser(c, h.pool, req.FirstName, req.SecondName, req.Email, loc)
+	_, err = h.DB.CreateUser(c, req.FirstName, req.SecondName, req.Email, loc)
 	if err != nil {
 		return err
 	}

@@ -12,7 +12,6 @@ import (
 
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgx/v4"
-	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/labstack/echo/v4"
 )
 
@@ -49,10 +48,10 @@ const (
 		LIMIT $4 OFFSET $5`
 )
 
-func SelectMeetingsByUserAndInterval(c echo.Context, pool *pgxpool.Pool,
+func (db *DB) SelectMeetingsByUserAndInterval(c echo.Context,
 	userID int32, loc *time.Location, from time.Time, to time.Time) ([]*models.MeetingInfoResponse, error) {
 	ctx := c.Request().Context()
-	rows, err := pool.Query(ctx, selectMeetingsByUserAndIntervalSQL, userID,
+	rows, err := db.pool.Query(ctx, selectMeetingsByUserAndIntervalSQL, userID,
 		from.In(constants.ServerTimeZone).Format(constants.DateFormat),
 		from.In(constants.ServerTimeZone).Format(constants.TimeFormat),
 		to.In(constants.ServerTimeZone).Format(constants.DateFormat),
@@ -84,10 +83,10 @@ func SelectMeetingsByUserAndInterval(c echo.Context, pool *pgxpool.Pool,
 	return meetings, nil
 }
 
-func SelectMeetStatus(c echo.Context, pool *pgxpool.Pool, userID, meetingID int32) (string, error) {
+func (db *DB) SelectMeetStatus(c echo.Context, userID, meetingID int32) (string, error) {
 	ctx := c.Request().Context()
 	var status string
-	row := pool.QueryRow(ctx, selectMeetingStatusSQL, userID, meetingID)
+	row := db.pool.QueryRow(ctx, selectMeetingStatusSQL, userID, meetingID)
 	if err := row.Scan(&status); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return "", helpers.WrapError(c, http.StatusBadRequest, constants.UserNotInvitedOnTheMeeting)
@@ -97,9 +96,9 @@ func SelectMeetStatus(c echo.Context, pool *pgxpool.Pool, userID, meetingID int3
 	return status, nil
 }
 
-func UpdateMeetStatus(c echo.Context, pool *pgxpool.Pool, userID, meetingID int32, status string) error {
+func (db *DB) UpdateMeetStatus(c echo.Context, userID, meetingID int32, status string) error {
 	ctx := c.Request().Context()
-	_, err := pool.Exec(ctx, updateMeetStatusSQL,
+	_, err := db.pool.Exec(ctx, updateMeetStatusSQL,
 		status, userID, meetingID)
 	if err != nil {
 		return helpers.WrapError(c, http.StatusInternalServerError, constants.UndefinedDB)
@@ -107,12 +106,12 @@ func UpdateMeetStatus(c echo.Context, pool *pgxpool.Pool, userID, meetingID int3
 	return nil
 }
 
-func CreateMeetingWithLinkToUsers(c echo.Context, pool *pgxpool.Pool,
+func (db *DB) CreateMeetingWithLinkToUsers(c echo.Context,
 	adminID int32, userIDs []int32,
 	name, description string, from, to time.Time,
 ) (int32, error) {
 	ctx := c.Request().Context()
-	tx, err := pool.BeginTx(ctx, pgx.TxOptions{})
+	tx, err := db.pool.BeginTx(ctx, pgx.TxOptions{})
 	defer func() {
 		if e := tx.Rollback(ctx); e != nil {
 			c.Logger().Error(e)
@@ -165,13 +164,13 @@ func CreateMeetingWithLinkToUsers(c echo.Context, pool *pgxpool.Pool,
 	return meetingID, nil
 }
 
-func GetMeeting(c echo.Context, pool *pgxpool.Pool, meetingID int32, loc *time.Location) (*models.MeetingInfoResponse, error) {
+func (db *DB) GetMeeting(c echo.Context, meetingID int32, loc *time.Location) (*models.MeetingInfoResponse, error) {
 	ctx := c.Request().Context()
 	var ID int32
 	var meetName, description string
 	var startDate, startTime, endDate, endTime *time.Time
 
-	row := pool.QueryRow(ctx, getMeetingSQL, meetingID)
+	row := db.pool.QueryRow(ctx, getMeetingSQL, meetingID)
 	if err := row.Scan(&ID, &meetName, &description, &startDate, &startTime, &endDate, &endTime); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, helpers.WrapError(c, http.StatusBadRequest, constants.MeetingIDNotExists)
@@ -191,10 +190,10 @@ func GetMeeting(c echo.Context, pool *pgxpool.Pool, meetingID int32, loc *time.L
 	}, nil
 }
 
-func FindOptimalMeetingAfterCertainMoment(c echo.Context, pool *pgxpool.Pool, userIDs []int32,
+func (db *DB) FindOptimalMeetingAfterCertainMoment(c echo.Context, userIDs []int32,
 	startingPoint time.Time, count, offset int) ([]*models.MeetingDataForOptimalCalcTime, error) {
 	ctx := c.Request().Context()
-	rows, err := pool.Query(ctx, selectFirstAllowedTimeIntervalByUserGroupSQL,
+	rows, err := db.pool.Query(ctx, selectFirstAllowedTimeIntervalByUserGroupSQL,
 		pq.Array(userIDs),
 		startingPoint.Format(constants.DateFormat),
 		startingPoint.Format(constants.TimeFormat),

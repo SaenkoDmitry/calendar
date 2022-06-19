@@ -4,7 +4,6 @@ import (
 	"calendar/internal/constants"
 	"calendar/internal/helpers"
 	"calendar/internal/models"
-	"calendar/internal/repository"
 	"net/http"
 	"time"
 
@@ -42,7 +41,7 @@ func (h *handler) GetOptimalMeetTimeForGroupOfUsers(c echo.Context) error {
 
 	for {
 		// values already sorted
-		meetings, err := repository.FindOptimalMeetingAfterCertainMoment(c, h.pool, req.UserIDs, prev, maxFetchRowsNumber, offset)
+		meetings, err := h.DB.FindOptimalMeetingAfterCertainMoment(c, req.UserIDs, prev, maxFetchRowsNumber, offset)
 		if err != nil {
 			return err
 		}

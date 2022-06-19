@@ -8,7 +8,6 @@ import (
 
 	"github.com/jackc/pgconn"
 
-	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/labstack/echo/v4"
 )
 
@@ -18,10 +17,10 @@ const (
 	createUserSQL     = `INSERT INTO users(first_name, second_name, email, user_zone) VALUES($1, $2, $3, $4) RETURNING id`
 )
 
-func SelectUserZone(c echo.Context, pool *pgxpool.Pool, userID int32) (*time.Location, error) {
+func (db *DB) SelectUserZone(c echo.Context, userID int32) (*time.Location, error) {
 	var zoneStr string
 	ctx := c.Request().Context()
-	row := pool.QueryRow(ctx, selectUserZoneSQL, userID)
+	row := db.pool.QueryRow(ctx, selectUserZoneSQL, userID)
 	if err := row.Scan(&zoneStr); err != nil {
 		return nil, helpers.WrapError(c, http.StatusBadRequest, constants.UserIDNotExists)
 	}
@@ -32,9 +31,9 @@ func SelectUserZone(c echo.Context, pool *pgxpool.Pool, userID int32) (*time.Loc
 	return loc, nil
 }
 
-func UpdateUserZone(c echo.Context, pool *pgxpool.Pool, userID int32, loc *time.Location) error {
+func (db *DB) UpdateUserZone(c echo.Context, userID int32, loc *time.Location) error {
 	ctx := c.Request().Context()
-	res, err := pool.Exec(ctx, updateUserZoneSQL, loc.String(), userID)
+	res, err := db.pool.Exec(ctx, updateUserZoneSQL, loc.String(), userID)
 	if err != nil {
 		return helpers.WrapError(c, http.StatusInternalServerError, constants.UndefinedDB)
 	}
@@ -46,9 +45,9 @@ func UpdateUserZone(c echo.Context, pool *pgxpool.Pool, userID int32, loc *time.
 	return nil
 }
 
-func CreateUser(c echo.Context, pool *pgxpool.Pool, firstName, secondName, email string, loc *time.Location) (userID int32, err error) {
+func (db *DB) CreateUser(c echo.Context, firstName, secondName, email string, loc *time.Location) (userID int32, err error) {
 	ctx := c.Request().Context()
-	row := pool.QueryRow(ctx, createUserSQL, firstName, secondName, email, loc.String())
+	row := db.pool.QueryRow(ctx, createUserSQL, firstName, secondName, email, loc.String())
 	err = row.Scan(&userID)
 	if err != nil {
 		pgErr, _ := err.(*pgconn.PgError)

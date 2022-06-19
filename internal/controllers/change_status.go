@@ -3,7 +3,6 @@ package controllers
 import (
 	"calendar/internal/constants"
 	"calendar/internal/helpers"
-	"calendar/internal/repository"
 	"context"
 	"fmt"
 	"net/http"
@@ -44,7 +43,7 @@ func (h *handler) ChangeStatusOfMeeting(c echo.Context) error {
 		return helpers.WrapError(c, http.StatusBadRequest, constants.InvalidOrEmptyStatus)
 	}
 
-	err = repository.UpdateMeetStatus(c, h.pool, userID, meetingID, newStatus)
+	err = h.DB.UpdateMeetStatus(c, userID, meetingID, newStatus)
 	if err != nil {
 		return err
 	}
