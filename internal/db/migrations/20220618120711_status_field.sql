@@ -1,6 +1,6 @@
 -- +goose Up
 -- +goose StatementBegin
-CREATE TYPE status_enum AS ENUM ('requested', 'approved', 'declined', 'finished', 'canceled');
+CREATE TYPE status_enum AS ENUM ('requested', 'approved', 'declined');
 ALTER TABLE user_meetings
     ADD status status_enum NOT NULL DEFAULT 'requested';
 -- +goose StatementEnd

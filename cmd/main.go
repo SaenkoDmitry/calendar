@@ -48,10 +48,9 @@ func main() {
 
 	e := echo.New()
 	e.Validator = &middlewares.CustomValidator{Validator: validator.New()}
-	e.Use(middleware.CORS())
 
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
-
+	e.Use(middleware.CORS())
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 

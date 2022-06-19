@@ -9,15 +9,13 @@ const (
 	InvalidUserID   = "invalid_user_id"
 	UserIDNotExists = "user_id_not_exists"
 
-	EmptyStatus   = "not_passed_status"
-	InvalidStatus = "invalid_status"
+	InvalidOrEmptyStatus = "invalid_or_empty_status"
 
 	InvalidMeetingID                     = "invalid_meeting_id"
 	MeetingIDNotExists                   = "meeting_id_not_exists"
 	CannotCreateMeeting                  = "cannot_create_meeting"
 	TooManyUsersForMeeting               = "too_many_users_for_meeting"
 	UserNotInvitedOnTheMeeting           = "user_not_invited_on_the_meeting"
-	MeetingCanceledOrFinished            = "meeting_canceled_or_finished"
 	NotFoundOptimalMeetingForTheInterval = "not_found_optimal_meeting_for_the_interval"
 
 	NotValidTimeZone      = "invalid_time_zone"
@@ -37,14 +35,12 @@ const (
 	UserIDConstraintDBErr = `insert or update on table "user_meetings" violates foreign key constraint "fk_user_id"`
 )
 
-var ValidStatuses = []string{Requested, Approved, Declined, Finished, Canceled}
+var ValidStatuses = []string{Requested, Approved, Declined}
 
 const (
 	Requested = "requested"
 	Approved  = "approved"
 	Declined  = "declined"
-	Finished  = "finished"
-	Canceled  = "canceled"
 )
 
 const (

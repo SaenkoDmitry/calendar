@@ -307,7 +307,7 @@ paths:
         name: meetingID
         required: true
         type: integer
-      - description: 'example: requested | approved | declined | finished | canceled'
+      - description: 'example: requested | approved | declined'
         in: query
         name: status
         type: string

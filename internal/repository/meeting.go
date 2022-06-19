@@ -39,12 +39,11 @@ const (
 	batchInsertUserMeetingsSQL = `INSERT INTO user_meetings(user_id, meeting_id) VALUES ($1, $2)`
 	getMeetingSQL              = `SELECT id, meet_name, description, start_date, start_time, end_date, end_time FROM meetings WHERE id = $1`
 
-	selectFirstNMeetingsByUserGroupSQL = `SELECT meeting_id, start_date, start_time, end_date, end_time
+	selectFirstAllowedTimeIntervalByUserGroupSQL = `SELECT meeting_id, start_date, start_time, end_date, end_time
 		FROM user_meetings um
 			JOIN meetings m on um.meeting_id = m.id
-		WHERE um.status != 'canceled' AND um.status != 'finished' AND um.status != 'declined'
-  			AND m.start_date >= $1 AND m.start_time >= $2
-  			AND um.user_id = ANY($3)
+		WHERE um.status != 'declined' AND um.user_id = ANY($1)
+			AND (m.start_date > $2 OR m.start_date = $2 AND m.start_time >= $3)
 		GROUP BY meeting_id, start_date, start_time, end_date, end_time
 		ORDER BY start_date, start_time, end_date, end_time ASC
 		LIMIT $4 OFFSET $5`
@@ -142,6 +141,9 @@ func CreateMeetingWithLinkToUsers(c echo.Context, pool *pgxpool.Pool,
 
 	batch.Queue(batchInsertUserMeetingsSQL, adminID, meetingID) // TODO need mark as organizer
 	for _, id := range userIDs {
+		if id == adminID {
+			continue
+		}
 		batch.Queue(batchInsertUserMeetingsSQL, id, meetingID)
 	}
 	batchResults := tx.SendBatch(ctx, batch)
@@ -192,11 +194,12 @@ func GetMeeting(c echo.Context, pool *pgxpool.Pool, meetingID int32, loc *time.L
 func FindOptimalMeetingAfterCertainMoment(c echo.Context, pool *pgxpool.Pool, userIDs []int32,
 	startingPoint time.Time, count, offset int) ([]*models.MeetingDataForOptimalCalcTime, error) {
 	ctx := c.Request().Context()
-	rows, err := pool.Query(ctx, selectFirstNMeetingsByUserGroupSQL,
+	rows, err := pool.Query(ctx, selectFirstAllowedTimeIntervalByUserGroupSQL,
+		pq.Array(userIDs),
 		startingPoint.Format(constants.DateFormat),
 		startingPoint.Format(constants.TimeFormat),
-		pq.Array(userIDs),
-		count, offset, // to do not fetch too long values immediately and not get very slow queries
+		count,
+		offset, // to do not fetch too long values immediately and not get very slow queries
 	)
 	defer rows.Close()
 	if err != nil {
@@ -220,5 +223,5 @@ func FindOptimalMeetingAfterCertainMoment(c echo.Context, pool *pgxpool.Pool, us
 			To:   toTime,
 		})
 	}
-	return meetings, err
+	return meetings, nil
 }

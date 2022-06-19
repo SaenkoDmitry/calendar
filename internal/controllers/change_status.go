@@ -4,8 +4,10 @@ import (
 	"calendar/internal/constants"
 	"calendar/internal/helpers"
 	"calendar/internal/repository"
+	"context"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo/v4"
 )
@@ -17,12 +19,16 @@ import (
 // @Produce  json
 // @Param    userID     path      int32   true   "User ID"
 // @Param    meetingID  path      int32   true   "Meeting ID"
-// @Param    status     query     string  false  "example: requested | approved | declined | finished | canceled"
+// @Param    status     query     string  false  "example: requested | approved | declined"
 // @Success  200        {object}  models.DataError
 // @Failure  400        {object}  models.DataError
 // @Failure  500        {object}  models.DataError
 // @Router   /users/{userID}/meetings/{meetingID} [put]
 func (h *handler) ChangeStatusOfMeeting(c echo.Context) error {
+	ctx, cancel := context.WithTimeout(c.Request().Context(), time.Millisecond*100)
+	defer cancel()
+	c.SetRequest(c.Request().Clone(ctx))
+
 	userID, err := helpers.GetUser(c, "userID")
 	if err != nil {
 		return err
@@ -34,20 +40,8 @@ func (h *handler) ChangeStatusOfMeeting(c echo.Context) error {
 	}
 
 	newStatus := c.QueryParam("status")
-	if newStatus == "" {
-		return helpers.WrapError(c, http.StatusBadRequest, constants.EmptyStatus)
-	}
 	if !helpers.IsValidStatus(newStatus) || newStatus == constants.Requested {
-		return helpers.WrapError(c, http.StatusBadRequest, constants.InvalidStatus)
-	}
-
-	currentStatus, err := repository.SelectMeetStatus(c, h.pool, userID, meetingID)
-	if err != nil {
-		return err
-	}
-
-	if currentStatus == constants.Canceled || currentStatus == constants.Finished {
-		return helpers.WrapError(c, http.StatusBadRequest, constants.MeetingCanceledOrFinished)
+		return helpers.WrapError(c, http.StatusBadRequest, constants.InvalidOrEmptyStatus)
 	}
 
 	err = repository.UpdateMeetStatus(c, h.pool, userID, meetingID, newStatus)

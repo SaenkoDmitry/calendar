@@ -349,7 +349,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "example: requested | approved | declined | finished | canceled",
+                        "description": "example: requested | approved | declined",
                         "name": "status",
                         "in": "query"
                     }
