@@ -16,6 +16,8 @@ func GetDateTime(c echo.Context, input string, loc *time.Location, msgErr string
 	return parsedTime, nil
 }
 
-func MergeDateAndTime(date *time.Time, t *time.Time) time.Time {
-	return date.Add(time.Hour*time.Duration(t.Hour()) + time.Minute*time.Duration(t.Minute()))
+func MergeDateAndTimeFromServer(date *time.Time, t *time.Time) time.Time {
+	temp := date.Add(time.Hour*time.Duration(t.Hour()) + time.Minute*time.Duration(t.Minute()))
+	res, _ := time.ParseInLocation(constants.DateTimeFormat, temp.Format(constants.DateTimeFormat), constants.ServerTimeZone)
+	return res
 }

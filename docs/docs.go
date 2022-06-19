@@ -92,6 +92,51 @@ const docTemplate = `{
                 }
             }
         },
+        "/meetings/suggest": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "meeting"
+                ],
+                "summary": "get first time interval for meeting for group of users when all of them are free",
+                "parameters": [
+                    {
+                        "description": "request body for creating meeting",
+                        "name": "FindOptimalMeetingTimeRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.FindOptimalMeetingTimeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.DataError"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.DataError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.DataError"
+                        }
+                    }
+                }
+            }
+        },
         "/meetings/{meetingID}": {
             "get": {
                 "consumes": [
@@ -403,6 +448,24 @@ const docTemplate = `{
                 "data": {},
                 "err": {
                     "$ref": "#/definitions/models.InternalError"
+                }
+            }
+        },
+        "models.FindOptimalMeetingTimeRequest": {
+            "type": "object",
+            "required": [
+                "min_duration_in_minutes",
+                "participants"
+            ],
+            "properties": {
+                "min_duration_in_minutes": {
+                    "type": "integer"
+                },
+                "participants": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
                 }
             }
         },

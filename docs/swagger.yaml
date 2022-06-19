@@ -49,6 +49,18 @@ definitions:
       err:
         $ref: '#/definitions/models.InternalError'
     type: object
+  models.FindOptimalMeetingTimeRequest:
+    properties:
+      min_duration_in_minutes:
+        type: integer
+      participants:
+        items:
+          type: integer
+        type: array
+    required:
+    - min_duration_in_minutes
+    - participants
+    type: object
   models.HealthService:
     properties:
       name:
@@ -157,6 +169,36 @@ paths:
           schema:
             $ref: '#/definitions/models.DataError'
       summary: get meeting info
+      tags:
+      - meeting
+  /meetings/suggest:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: request body for creating meeting
+        in: body
+        name: FindOptimalMeetingTimeRequest
+        required: true
+        schema:
+          $ref: '#/definitions/models.FindOptimalMeetingTimeRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.DataError'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.DataError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.DataError'
+      summary: get first time interval for meeting for group of users when all of
+        them are free
       tags:
       - meeting
   /users:

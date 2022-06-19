@@ -10,7 +10,7 @@ import (
 
 func ChooseZone(c echo.Context, zone string) (*time.Location, error) {
 	if zone == "" {
-		return time.UTC, nil
+		return constants.ServerTimeZone, nil
 	}
 	loc, err := time.LoadLocation(zone)
 	if err != nil {

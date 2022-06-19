@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgconn"
+
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/labstack/echo/v4"
 )
@@ -14,7 +15,7 @@ import (
 const (
 	selectUserZoneSQL = `SELECT user_zone FROM users WHERE id = $1`
 	updateUserZoneSQL = `UPDATE users SET user_zone = $1 WHERE id = $2`
-	createUserSQL     = `INSERT INTO users(first_name, second_name, email, user_zone) VALUES($1, $2, $3, $4)`
+	createUserSQL     = `INSERT INTO users(first_name, second_name, email, user_zone) VALUES($1, $2, $3, $4) RETURNING id`
 )
 
 func SelectUserZone(c echo.Context, pool *pgxpool.Pool, userID int32) (*time.Location, error) {
@@ -45,16 +46,16 @@ func UpdateUserZone(c echo.Context, pool *pgxpool.Pool, userID int32, loc *time.
 	return nil
 }
 
-func CreateUser(c echo.Context, pool *pgxpool.Pool, firstName, secondName, email string, loc *time.Location) error {
+func CreateUser(c echo.Context, pool *pgxpool.Pool, firstName, secondName, email string, loc *time.Location) (userID int32, err error) {
 	ctx := c.Request().Context()
-	_, err := pool.Exec(ctx, createUserSQL, firstName, secondName, email, loc.String())
+	row := pool.QueryRow(ctx, createUserSQL, firstName, secondName, email, loc.String())
+	err = row.Scan(&userID)
 	if err != nil {
 		pgErr, _ := err.(*pgconn.PgError)
 		if helpers.IsEmailDuplicated(pgErr) {
-			err = helpers.WrapError(c, http.StatusConflict, constants.EmailAlreadyRegistered)
-			return err
+			return 0, helpers.WrapError(c, http.StatusConflict, constants.EmailAlreadyRegistered)
 		}
-		return helpers.WrapError(c, http.StatusInternalServerError, constants.UndefinedDB)
+		return 0, helpers.WrapError(c, http.StatusInternalServerError, constants.UndefinedDB)
 	}
-	return nil
+	return 0, nil
 }

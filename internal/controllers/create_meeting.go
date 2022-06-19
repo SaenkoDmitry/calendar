@@ -29,6 +29,10 @@ func (h *handler) CreateMeeting(c echo.Context) error {
 		return err
 	}
 
+	if len(req.UserIDs) > 200 {
+		return helpers.WrapError(c, http.StatusBadRequest, constants.TooManyUsersForMeeting)
+	}
+
 	loc, err := repository.SelectUserZone(c, h.pool, req.AdminID)
 	if err != nil {
 		return err

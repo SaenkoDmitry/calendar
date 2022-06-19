@@ -1,5 +1,7 @@
 package constants
 
+import "time"
+
 const (
 	EmailAlreadyRegistered = "email_already_registered"
 	UndefinedDB            = "undefined_db_error"
@@ -10,11 +12,13 @@ const (
 	EmptyStatus   = "not_passed_status"
 	InvalidStatus = "invalid_status"
 
-	InvalidMeetingID           = "invalid_meeting_id"
-	MeetingIDNotExists         = "meeting_id_not_exists"
-	CannotInsertMeeting        = "cannot_insert_meeting"
-	UserNotInvitedOnTheMeeting = "user_not_invited_on_the_meeting"
-	MeetingCanceledOrFinished  = "meeting_canceled_or_finished"
+	InvalidMeetingID                     = "invalid_meeting_id"
+	MeetingIDNotExists                   = "meeting_id_not_exists"
+	CannotCreateMeeting                  = "cannot_create_meeting"
+	TooManyUsersForMeeting               = "too_many_users_for_meeting"
+	UserNotInvitedOnTheMeeting           = "user_not_invited_on_the_meeting"
+	MeetingCanceledOrFinished            = "meeting_canceled_or_finished"
+	NotFoundOptimalMeetingForTheInterval = "not_found_optimal_meeting_for_the_interval"
 
 	NotValidTimeZone      = "invalid_time_zone"
 	InvalidFromDate       = "invalid_from_date"
@@ -45,4 +49,8 @@ const (
 
 const (
 	PostgresDBService = "postgres_db"
+)
+
+var (
+	ServerTimeZone *time.Location
 )

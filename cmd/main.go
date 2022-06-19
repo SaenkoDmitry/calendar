@@ -1,11 +1,13 @@
 package main
 
 import (
+	"calendar/internal/constants"
 	"calendar/internal/controllers"
 	"calendar/internal/db"
 	"calendar/internal/middlewares"
 	"net/http"
 	"os"
+	"time"
 
 	echoSwagger "github.com/swaggo/echo-swagger"
 
@@ -38,6 +40,12 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
+	loc, err := time.LoadLocation("Europe/Moscow")
+	if err != nil {
+		panic(err)
+	}
+	constants.ServerTimeZone = loc
+
 	e := echo.New()
 	e.Validator = &middlewares.CustomValidator{Validator: validator.New()}
 	e.Use(middleware.CORS())
@@ -47,7 +55,7 @@ func main() {
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
-	err := db.MakeMigrations()
+	err = db.MakeMigrations()
 	if err != nil {
 		log.Fatalf("Could not make migrations: %s", err.Error())
 		os.Exit(1)
@@ -69,7 +77,7 @@ func main() {
 
 	e.PUT("/users/:userID/meetings/:meetingID", h.ChangeStatusOfMeeting) // принять или отклонить приглашение другого пользователя
 	e.GET("/users/:userID/meetings", h.GetMeetingsByUserAndTimeInterval) // найти все встречи пользователя для заданного промежутка времени
-	e.GET("/meetings", h.GetFreeTimeForGroupOfUsers)                     // найти ближайшей интервал времени, в котором все эти пользователи свободны
+	e.POST("/meetings/suggest", h.GetOptimalMeetTimeForGroupOfUsers)     // найти ближайшей интервал времени, в котором все эти пользователи свободны
 	e.GET("/health", h.HealthCheck)
 
 	if err := e.Start(":8080"); err != http.ErrServerClosed {

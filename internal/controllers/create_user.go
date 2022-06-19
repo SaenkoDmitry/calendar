@@ -33,7 +33,7 @@ func (h *handler) CreateUser(c echo.Context) error {
 		return err
 	}
 
-	err = repository.CreateUser(c, h.pool, req.FirstName, req.SecondName, req.Email, loc)
+	_, err = repository.CreateUser(c, h.pool, req.FirstName, req.SecondName, req.Email, loc)
 	if err != nil {
 		return err
 	}
