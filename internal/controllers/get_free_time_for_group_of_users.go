@@ -4,6 +4,7 @@ import (
 	"calendar/internal/constants"
 	"calendar/internal/helpers"
 	"calendar/internal/models"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -32,6 +33,14 @@ func (h *handler) GetOptimalMeetTimeForGroupOfUsers(c echo.Context) error {
 	}
 	if err := c.Validate(req); err != nil {
 		return err
+	}
+
+	existedUserIDs, err := h.DB.CheckUsersExistence(c, req.UserIDs)
+	if err != nil {
+		return err
+	}
+	if v, ok := helpers.ValidateExistenceOfUsers(req.UserIDs, existedUserIDs); !ok {
+		return helpers.WrapErrorWithMsg(c, http.StatusBadRequest, constants.InvalidUserList, fmt.Sprintf("not exists next users: %v", v))
 	}
 
 	var resStart, resEnd *time.Time

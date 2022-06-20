@@ -32,6 +32,7 @@ type DBService interface {
 	UpdateUserZone(c echo.Context, userID int32, loc *time.Location) error
 
 	CreateUser(c echo.Context, firstName, secondName, email string, loc *time.Location) (userID int32, err error)
+	CheckUsersExistence(c echo.Context, userIDs []int32) ([]int32, error)
 }
 
 type DB struct {

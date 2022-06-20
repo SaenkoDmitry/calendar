@@ -12,11 +12,12 @@ type CreateMeetingReq struct {
 }
 
 type MeetingInfoResponse struct {
-	ID          int32  `json:"id"`
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	From        string `json:"from"`
-	To          string `json:"to"`
+	ID           int32   `json:"id"`
+	Name         string  `json:"name"`
+	Description  string  `json:"description"`
+	Participants []int32 `json:"participants"`
+	From         string  `json:"from"`
+	To           string  `json:"to"`
 }
 
 type FindOptimalMeetingTimeRequest struct {

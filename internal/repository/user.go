@@ -6,15 +6,18 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/jackc/pgtype"
+
 	"github.com/jackc/pgconn"
 
 	"github.com/labstack/echo/v4"
 )
 
 const (
-	selectUserZoneSQL = `SELECT user_zone FROM users WHERE id = $1`
-	updateUserZoneSQL = `UPDATE users SET user_zone = $1 WHERE id = $2`
-	createUserSQL     = `INSERT INTO users(first_name, second_name, email, user_zone) VALUES($1, $2, $3, $4) RETURNING id`
+	selectUserZoneSQL    = `SELECT user_zone FROM users WHERE id = $1`
+	selectUsersByListSQL = `SELECT array_agg(id) FROM users WHERE id = ANY($1)`
+	updateUserZoneSQL    = `UPDATE users SET user_zone = $1 WHERE id = $2`
+	createUserSQL        = `INSERT INTO users(first_name, second_name, email, user_zone) VALUES($1, $2, $3, $4) RETURNING id`
 )
 
 func (db *DB) SelectUserZone(c echo.Context, userID int32) (*time.Location, error) {
@@ -57,4 +60,14 @@ func (db *DB) CreateUser(c echo.Context, firstName, secondName, email string, lo
 		return 0, helpers.WrapError(c, http.StatusInternalServerError, constants.UndefinedDB)
 	}
 	return 0, nil
+}
+
+func (db *DB) CheckUsersExistence(c echo.Context, userIDs []int32) ([]int32, error) {
+	ctx := c.Request().Context()
+	var existedUserIDs pgtype.Int4Array
+	row := db.pool.QueryRow(ctx, selectUsersByListSQL, userIDs)
+	if err := row.Scan(&existedUserIDs); err != nil {
+		return []int32{}, helpers.WrapError(c, http.StatusInternalServerError, constants.UndefinedDB)
+	}
+	return helpers.ConvertInt4ArrayToInt32(existedUserIDs), nil
 }

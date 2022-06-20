@@ -5,9 +5,11 @@ import "time"
 const (
 	EmailAlreadyRegistered = "email_already_registered"
 	UndefinedDB            = "undefined_db_error"
+	NothingUpdated         = "nothing_updated"
 
 	InvalidUserID   = "invalid_user_id"
 	UserIDNotExists = "user_id_not_exists"
+	InvalidUserList = "invalid_user_list"
 
 	InvalidOrEmptyStatus = "invalid_or_empty_status"
 

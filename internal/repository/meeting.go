@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/jackc/pgtype"
+
 	"github.com/lib/pq"
 
 	"github.com/jackc/pgconn"
@@ -33,7 +35,13 @@ const (
 		VALUES($1, $2, $3, $4, $5, $6) RETURNING id`
 
 	batchInsertUserMeetingsSQL = `INSERT INTO user_meetings(user_id, meeting_id) VALUES ($1, $2)`
-	getMeetingSQL              = `SELECT id, meet_name, description, start_date, start_time, end_date, end_time FROM meetings WHERE id = $1`
+	getMeetingSQL              = `SELECT m.id as id, array_agg(u.id) as participants, meet_name, description, start_date, start_time, end_date, end_time
+    	FROM meetings m
+    		LEFT JOIN user_meetings um on m.id = um.meeting_id
+    		LEFT JOIN users u on um.user_id = u.id
+    	WHERE m.id = $1
+    	GROUP BY m.id
+`
 
 	selectFirstAllowedTimeIntervalByUserGroupSQL = `SELECT meeting_id, start_date, start_time, end_date, end_time
 		FROM user_meetings um
@@ -82,10 +90,13 @@ func (db *DB) SelectMeetingsByUserAndInterval(c echo.Context,
 
 func (db *DB) UpdateMeetStatus(c echo.Context, userID, meetingID int32, status string) error {
 	ctx := c.Request().Context()
-	_, err := db.pool.Exec(ctx, updateMeetStatusSQL,
+	res, err := db.pool.Exec(ctx, updateMeetStatusSQL,
 		status, userID, meetingID)
 	if err != nil {
 		return helpers.WrapError(c, http.StatusInternalServerError, constants.UndefinedDB)
+	}
+	if res.RowsAffected() == 0 {
+		return helpers.WrapError(c, http.StatusNotFound, constants.NothingUpdated)
 	}
 	return nil
 }
@@ -151,11 +162,12 @@ func (db *DB) CreateMeetingWithLinkToUsers(c echo.Context,
 func (db *DB) GetMeeting(c echo.Context, meetingID int32, loc *time.Location) (*models.MeetingInfoResponse, error) {
 	ctx := c.Request().Context()
 	var ID int32
+	var participants pgtype.Int4Array
 	var meetName, description string
 	var startDate, startTime, endDate, endTime *time.Time
 
 	row := db.pool.QueryRow(ctx, getMeetingSQL, meetingID)
-	if err := row.Scan(&ID, &meetName, &description, &startDate, &startTime, &endDate, &endTime); err != nil {
+	if err := row.Scan(&ID, &participants, &meetName, &description, &startDate, &startTime, &endDate, &endTime); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, helpers.WrapError(c, http.StatusBadRequest, constants.MeetingIDNotExists)
 		}
@@ -166,11 +178,12 @@ func (db *DB) GetMeeting(c echo.Context, meetingID int32, loc *time.Location) (*
 	toTime := helpers.MergeDateAndTimeFromServer(endDate, endTime)
 
 	return &models.MeetingInfoResponse{
-		ID:          ID,
-		Name:        meetName,
-		Description: description,
-		From:        fromTime.In(loc).Format(constants.PrettyDateTimeFormat),
-		To:          toTime.In(loc).Format(constants.PrettyDateTimeFormat),
+		ID:           ID,
+		Name:         meetName,
+		Description:  description,
+		Participants: helpers.ConvertInt4ArrayToInt32(participants),
+		From:         fromTime.In(loc).Format(constants.PrettyDateTimeFormat),
+		To:           toTime.In(loc).Format(constants.PrettyDateTimeFormat),
 	}, nil
 }
 

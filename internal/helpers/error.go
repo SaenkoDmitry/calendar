@@ -23,3 +23,14 @@ func WrapError(c echo.Context, status int, errCode string) error {
 	})
 	return errors.New(errCode)
 }
+
+func WrapErrorWithMsg(c echo.Context, status int, errCode, msg string) error {
+	c.JSON(status, &models.DataError{
+		Data: nil,
+		Err: &models.InternalError{
+			Code: errCode,
+			Msg:  msg,
+		},
+	})
+	return errors.New(errCode)
+}
