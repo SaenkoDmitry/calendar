@@ -18,7 +18,7 @@ import (
 // @Success  200  {object}  models.HealthStatus
 // @Router   /health [get]
 func (h *handler) HealthCheck(c echo.Context) error {
-	return c.JSON(http.StatusOK, models.HealthStatus{
+	return c.JSONPretty(http.StatusOK, models.HealthStatus{
 		Status:    "OK",
 		Timestamp: time.Now(),
 		Services: []*models.HealthService{
@@ -27,5 +27,5 @@ func (h *handler) HealthCheck(c echo.Context) error {
 				Status: h.DB.Check(context.Background()),
 			},
 		},
-	})
+	}, "  ")
 }
