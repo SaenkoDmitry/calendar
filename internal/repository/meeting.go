@@ -4,6 +4,7 @@ import (
 	"calendar/internal/constants"
 	"calendar/internal/helpers"
 	"calendar/internal/models"
+	"database/sql"
 	"errors"
 	"net/http"
 	"time"
@@ -70,7 +71,8 @@ func (db *DB) SelectMeetingsByUserAndInterval(c echo.Context,
 	meetings := make([]*models.MeetingInfoResponse, 0)
 	for rows.Next() {
 		var ID int32
-		var meetName, description string
+		var meetName string
+		var description sql.NullString
 		var startDate, startTime, endDate, endTime *time.Time
 		if err = rows.Scan(&ID, &meetName, &description, &startDate, &startTime, &endDate, &endTime); err != nil {
 			return nil, helpers.WrapError(c, http.StatusInternalServerError, constants.UndefinedDB)
@@ -80,7 +82,7 @@ func (db *DB) SelectMeetingsByUserAndInterval(c echo.Context,
 		meetings = append(meetings, &models.MeetingInfoResponse{
 			ID:          ID,
 			Name:        meetName,
-			Description: description,
+			Description: description.String,
 			From:        fromTime.In(loc).Format(constants.PrettyDateTimeFormat),
 			To:          toTime.In(loc).Format(constants.PrettyDateTimeFormat),
 		})
