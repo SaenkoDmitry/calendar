@@ -17,6 +17,13 @@ make run
 docker-compose up --build
 ```
 
+### ATTENTION!
+```
+when service started 'goose' utility will apply migrations from 'calendar/internal/db/migrations' including '20220621003129_generate_data.sql'
+which contains postgres sql scripts for generating random mock db data for your convinience
+so first start might be a bit slow
+```
+
 ## Migrations
 
 #### example of rollback to previous migration from actual
