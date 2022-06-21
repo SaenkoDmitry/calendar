@@ -9,6 +9,7 @@ type CreateMeetingReq struct {
 	UserIDs     []int32 `json:"participants" validate:"required"`
 	From        string  `json:"from" validate:"required"` // 2022-01-02T15:00
 	To          string  `json:"to" validate:"required"`   // 2022-01-02T16:00
+	Repeat      string  `json:"repeat"`
 }
 
 type MeetingInfoResponse struct {
@@ -18,6 +19,14 @@ type MeetingInfoResponse struct {
 	Participants []int32 `json:"participants"`
 	From         string  `json:"from"`
 	To           string  `json:"to"`
+	Repeat       string  `json:"repeat"`
+}
+
+type VirtualMeetingInfo struct {
+	ID     int32     `json:"id"`
+	From   time.Time `json:"from"`
+	To     time.Time `json:"to"`
+	Repeat string    `json:"repeat"`
 }
 
 type FindOptimalMeetingTimeRequest struct {

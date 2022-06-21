@@ -4,6 +4,7 @@ import (
 	"calendar/internal/constants"
 	"calendar/internal/helpers"
 	"calendar/internal/models"
+	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -32,6 +33,10 @@ func (h *handler) CreateMeeting(c echo.Context) error {
 		return helpers.WrapError(c, http.StatusBadRequest, constants.TooManyUsersForMeeting)
 	}
 
+	if req.Repeat != "" && !helpers.ValidateRepeatInterval(req.Repeat) {
+		return helpers.WrapErrorWithMsg(c, http.StatusBadRequest, constants.InvalidRepeatIntervals, fmt.Sprintf("valid repeats: %v", constants.ValidRepeatIntervals))
+	}
+
 	loc, err := h.DB.SelectUserZone(c, req.AdminID)
 	if err != nil {
 		return err
@@ -51,7 +56,7 @@ func (h *handler) CreateMeeting(c echo.Context) error {
 		return helpers.WrapError(c, http.StatusBadRequest, constants.FromEarlierThanToDate)
 	}
 
-	meetingID, err := h.DB.CreateMeetingWithLinkToUsers(c, req.AdminID, req.UserIDs, req.Name, req.Description, from, to)
+	meetingID, err := h.DB.CreateMeetingWithLinkToUsers(c, req.AdminID, req.UserIDs, req.Name, req.Description, req.Repeat, from, to)
 	if err != nil {
 		return err
 	}

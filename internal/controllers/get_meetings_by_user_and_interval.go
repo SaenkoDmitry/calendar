@@ -58,5 +58,27 @@ func (h *handler) GetMeetingsByUserAndTimeInterval(c echo.Context) error {
 		return err
 	}
 
+	candidates, err := h.DB.SelectVirtualMeetingsByUserStartsBefore(c, userID, to)
+	if err != nil {
+		return err
+	}
+
+	serverFrom := from.In(constants.ServerTimeZone)
+	serverTo := to.In(constants.ServerTimeZone)
+	virtualIDs := make([]int32, 0)
+	for i := range candidates {
+		meets := helpers.CalcVirtualMeetingsInsideInterval(candidates[i], serverFrom, serverTo)
+		for j := range meets {
+			virtualIDs = append(virtualIDs, meets[j].ID)
+		}
+	}
+
+	virtualMeetings, err := h.DB.ResolveMeetingsByIDs(c, virtualIDs, loc)
+	if err != nil {
+		return err
+	}
+
+	meetings = append(meetings, virtualMeetings...)
+
 	return helpers.WrapSuccess(c, http.StatusOK, meetings)
 }

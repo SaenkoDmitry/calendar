@@ -16,6 +16,9 @@ const (
 	//roundingInterval   = 30
 )
 
+// TODO need to take into account, that virtual meeting exists !
+// TODO panic("not implemented yet")
+
 // GetOptimalMeetTimeForGroupOfUsers godoc
 // @Summary  get first time interval for meeting for group of users when all of them are free
 // @Tags     meeting

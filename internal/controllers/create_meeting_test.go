@@ -17,7 +17,7 @@ const (
 	createMeetingReq = "{\n\t\"name\": \"Встреча\",\n\t\"organizer_id\": 8,\n\t\"participants\": [85, 87, 8],\n\t\"from\": \"2022-01-02T18:00\",\n\t\"to\": \"2022-01-02T19:00\"\n}"
 )
 
-func (m MockDB) CreateMeetingWithLinkToUsers(c echo.Context, adminID int32, userIDs []int32, name, description string, from, to time.Time) (int32, error) {
+func (m MockDB) CreateMeetingWithLinkToUsers(c echo.Context, adminID int32, userIDs []int32, name, description, repeat string, from, to time.Time) (int32, error) {
 	return 5, nil
 }
 

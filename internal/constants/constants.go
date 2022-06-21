@@ -17,7 +17,7 @@ const (
 	MeetingIDNotExists                   = "meeting_id_not_exists"
 	CannotCreateMeeting                  = "cannot_create_meeting"
 	TooManyUsersForMeeting               = "too_many_users_for_meeting"
-	UserNotInvitedOnTheMeeting           = "user_not_invited_on_the_meeting"
+	InvalidRepeatIntervals               = "invalid_repeat_intervals"
 	NotFoundOptimalMeetingForTheInterval = "not_found_optimal_meeting_for_the_interval"
 
 	NotValidTimeZone      = "invalid_time_zone"
@@ -44,6 +44,16 @@ const (
 	Approved  = "approved"
 	Declined  = "declined"
 )
+
+const (
+	Days     = "days"
+	Weeks    = "weeks"
+	Months   = "months"
+	Years    = "years"
+	Weekdays = "weekdays"
+)
+
+var ValidRepeatIntervals = []string{Days, Weeks, Months, Years, Weekdays}
 
 const (
 	PostgresDBService = "postgres_db"
